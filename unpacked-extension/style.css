@@ -11,6 +11,7 @@ textarea#style-chrome-extension-textarea {
   outline: none !important;
   padding: 10px !important;
   border: 0 !important;
+  border-radius: 0 !important;
   box-shadow: -1px 0 rgba(0, 0, 0, .18), inset 0 0 red !important;
   transition: box-shadow .5s 2s ease !important;
   color: #303942 !important;
