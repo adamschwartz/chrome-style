@@ -35,8 +35,6 @@
   };
 
   var setupDOM = once(function() {
-    console.log('setupDOM');
-
     var head = document.getElementsByTagName('head')[0] || document.body || document.documentElement;
     var body = document.body || document.documentElement;
 
