@@ -1,12 +1,19 @@
 (function(window, document, undefined) {
-  var hidePage = function() {
-    document.documentElement.style.opacity = 0;
-  };
-  hidePage();
+  document.documentElement.style.opacity = 0;
 
-  var showPage = function() {
-    document.documentElement.style.opacity = 1;
+  var once = function(fn) {
+    var ran = false;
+
+    return function() {
+      if (ran) return
+      ran = true;
+      fn();
+    }
   };
+
+  var showPage = once(function() {
+    document.documentElement.style.opacity = 1;
+  });
 
   var throttle = function(fn, timeout) {
     return function throttledFn() {
@@ -27,23 +34,23 @@
     return location.hostname;
   };
 
-  var ranSetupDOM = false;
-  var setupDOM = function() {
-    if (ranSetupDOM || !document) {
-      return
-    }
+  var setupDOM = once(function() {
+    console.log('setupDOM');
 
-    var head = document.getElementsByTagName('head')[0];
-    var body = document.body;
+    var head = document.getElementsByTagName('head')[0] || document.body || document.documentElement;
+    var body = document.body || document.documentElement;
 
-    if (!head || !body) {
+    if (!head && !body) {
       return;
     }
 
-    ranSetupDOM = true;
-
     var style = document.createElement('style');
     var textarea = document.createElement('textarea');
+
+    if (!textarea.style) {
+      showPage();
+      return;
+    }
 
     textarea.id = 'style-chrome-extension-textarea';
     textarea.style.display = 'none';
@@ -52,7 +59,7 @@
     head.appendChild(style);
     body.appendChild(textarea);
 
-    chrome.storage.sync.get(storageKey(), function(obj){
+    chrome.storage.sync.get(storageKey(), function(obj) {
       if (!obj || !obj[storageKey()]) {
         showPage();
         return;
@@ -81,7 +88,7 @@
     textarea.addEventListener('keyup', updateAndSaveStyles);
     textarea.addEventListener('change', updateAndSaveStyles);
 
-    textarea.addEventListener('keydown', function(event){
+    textarea.addEventListener('keydown', function(event) {
       var spaces = '  ';
       var tabKeyCode = 9;
 
@@ -107,9 +114,21 @@
         }
       }
     });
-  };
+  });
 
-  document.addEventListener('DOMNodeInserted', setupDOM);
+  var observer = new MutationObserver(function(mutationsList, observer) {
+    observer.disconnect();
+    setupDOM();
+  });
+
+  observer.observe(document.documentElement, { attributes: true });
+
+  document.onreadystatechange = function () {
+    if (document.readyState === "interactive") {
+      setupDOM();
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", setupDOM);
 
 })(this, this.document);
